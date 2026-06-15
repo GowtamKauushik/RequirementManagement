@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { ClipboardList, LogOut, Shield, Users, Building2, History, Plus, Save, Trash2, Package, Upload, BadgePercent, Users2, FileText, AlertCircle, PackageX, Activity, Wallet, TrendingUp, Download, Bell, Eye, EyeOff, Smartphone, Monitor, Laptop, Server, Headphones, HardDrive, Cpu, Printer, Mouse, Keyboard } from "lucide-react";
 import "./styles.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+const API_URL = import.meta.env.VITE_API_URL || "/api";
 const roles = ["SUPER_ADMIN", "ADMIN", "USER"];
 const roleLabels = { SUPER_ADMIN: "CEO", ADMIN: "Branch Manager", USER: "GRO" };
 const priorities = ["LOW", "MEDIUM", "HIGH", "CRITICAL"];
