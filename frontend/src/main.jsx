@@ -1049,7 +1049,7 @@ function Inventory({ canUpload }) {
                               {isEditing ? (
                                 <>
                                   <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} disabled={pendingEdit[row.id]?._fromGroup} style={{ fontSize: "0.85rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", background: pendingEdit[row.id]?._fromGroup ? "#f1f5f9" : "white", color: pendingEdit[row.id]?._fromGroup ? "#94a3b8" : "inherit" }} />
-                                  <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                                  <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} disabled={pendingEdit[row.id]?._fromGroup} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", background: pendingEdit[row.id]?._fromGroup ? "#f1f5f9" : "white", color: pendingEdit[row.id]?._fromGroup ? "#94a3b8" : "inherit" }} />
                                   <textarea placeholder="Product Description" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", resize: "vertical", minHeight: "60px", fontFamily: "inherit" }} />
                                 </>
                               ) : (
