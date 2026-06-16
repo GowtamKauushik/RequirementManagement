@@ -1270,7 +1270,9 @@ function Collections({ canEdit, session }) {
           <label>Customer
             <select value={form.customerId} onChange={(e) => setForm({ ...form, customerId: e.target.value, requirementId: "" })} required>
               <option value="">Select Customer</option>
-              {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {customers
+                .filter(c => String(c.id) === String(form.customerId) || requirements.some(r => String(r.customer?.id) === String(c.id) && (r.status === "ACTIVE" || r.status === "IN_PROGRESS")))
+                .map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </label>
           <label>Requirement (Optional)
