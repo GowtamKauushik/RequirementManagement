@@ -930,18 +930,24 @@ function Inventory({ canUpload }) {
             <div key={company} style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
               <div style={{ background: "#f8fafc", padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h2 style={{ margin: 0, color: "#0f172a", fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}><Package size={20} color="#146c72"/> {company}</h2>
-                <button type="button" onClick={() => {
-                  const newId = "new-" + Date.now();
-                  setPendingStatus({ ...pendingEdit, [newId]: { id: newId, product: company === "Uncategorized Company" ? "" : company, category: "", variant: "", quantity: 0, price: 0 } });
-                  setItems([{ id: newId, product: company === "Uncategorized Company" ? "" : company, category: "", variant: "", quantity: 0, price: 0 }, ...items]);
-                }} className="primary" style={{ padding: "6px 12px", fontSize: "0.85rem" }}><Plus size={14} /> Add Product</button>
               </div>
               <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "24px" }}>
                 {Object.entries(categories).map(([category, companyItems]) => (
                   <div key={category}>
-                    <h3 style={{ margin: "0 0 16px 0", color: "#146c72", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "2px solid #f1f5f9", paddingBottom: "8px" }}>
-                      {category}
-                    </h3>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "2px solid #f1f5f9", paddingBottom: "8px", marginBottom: "16px" }}>
+                      <h3 style={{ margin: 0, color: "#146c72", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                        {category}
+                      </h3>
+                      <button type="button" onClick={() => {
+                        const newId = "new-" + Date.now();
+                        const p = company === "Uncategorized Company" ? "" : company;
+                        const c = category === "Uncategorized" ? "" : category;
+                        setPendingStatus({ ...pendingEdit, [newId]: { id: newId, product: p, category: c, variant: "", quantity: 0, price: 0 } });
+                        setItems([{ id: newId, product: p, category: c, variant: "", quantity: 0, price: 0 }, ...items]);
+                      }} style={{ padding: "4px 10px", fontSize: "0.8rem", background: "white", color: "#146c72", border: "1px solid #146c72", borderRadius: "6px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                        <Plus size={14} /> Add Product
+                      </button>
+                    </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
                       {companyItems.map(row => {
                         const isEditing = pendingEdit[row.id] !== undefined;
