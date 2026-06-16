@@ -1318,7 +1318,7 @@ function Collections({ canEdit, session }) {
           )}
           <div style={{ display: "flex", gap: "1rem" }}>
             <label style={{ flex: 1 }}>Product Value<input type="number" step="0.01" value={form.productValue} onChange={(e) => setForm({ ...form, productValue: e.target.value })} disabled={!!form.requirementId} style={{ background: form.requirementId ? "#f1f5f9" : "white", cursor: form.requirementId ? "not-allowed" : "text" }} required /></label>
-            <label style={{ flex: 1 }}>Quantity<input type="number" min="1" value={form.quantity || "1"} onChange={(e) => setForm({ ...form, quantity: e.target.value })} disabled={!!form.requirementId} style={{ background: form.requirementId ? "#f1f5f9" : "white", cursor: form.requirementId ? "not-allowed" : "text" }} required /></label>
+            <label style={{ flex: 1 }}>Quantity<input type="number" min="1" value={form.quantity || "1"} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required /></label>
             <label style={{ flex: 1 }}>Collected Amt<input type="number" step="0.01" value={form.collectedAmount} onChange={(e) => setForm({ ...form, collectedAmount: e.target.value })} required /></label>
           </div>
           <div style={{ padding: "10px", background: "#f8fafc", borderRadius: "6px", fontSize: "0.9rem", color: "#475569", border: "1px solid #e2e8f0" }}>
