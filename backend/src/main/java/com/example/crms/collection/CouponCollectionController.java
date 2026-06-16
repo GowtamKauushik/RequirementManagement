@@ -166,10 +166,17 @@ public class CouponCollectionController {
                 if (req.getStatus() != com.example.crms.requirement.RequirementStatus.IN_PROGRESS) {
                     throw new IllegalArgumentException("Requirement must be in IN_PROGRESS state to be selected for a collection.");
                 }
-                if (collectionRepository.existsByRequirementId(req.getId())) {
-                    throw new IllegalArgumentException("A collection already exists for this requirement.");
-                }
             }
+            
+            int totalCollectedSoFar = collectionRepository.findByRequirementId(req.getId()).stream()
+                    .filter(c -> collection.getId() == null || !c.getId().equals(collection.getId()))
+                    .mapToInt(CouponCollection::getQuantity)
+                    .sum();
+                    
+            if (totalCollectedSoFar + request.quantity() > req.getQuantity()) {
+                throw new IllegalArgumentException("Cannot collect more than the required quantity (" + req.getQuantity() + "). Already collected: " + totalCollectedSoFar);
+            }
+            
             collection.setRequirement(req);
         } else {
             collection.setRequirement(null);

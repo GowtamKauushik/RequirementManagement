@@ -1283,7 +1283,10 @@ function Collections({ canEdit, session }) {
               let updatedProductValue = form.productValue || "";
 
               if (selectedReq) {
-                updatedQuantity = selectedReq.quantity ? String(selectedReq.quantity) : "1";
+                const alreadyCollected = items.filter(c => String(c.requirementId) === String(selectedReq.id) && String(c.id) !== String(form.id))
+                                              .reduce((sum, c) => sum + Number(c.quantity || 0), 0);
+                const remaining = (selectedReq.quantity || 1) - alreadyCollected;
+                updatedQuantity = remaining > 0 ? String(remaining) : "1";
                 const selectedInv = inventory.find(i => i.product === selectedReq.title);
                 if (selectedInv && selectedInv.price) {
                   updatedProductValue = String(selectedInv.price);
