@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: crms-backend
+    env: docker
+    region: ohio
+    plan: free
+    rootDir: backend
+    healthCheckPath: /api/users
+    envVars:
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGIN
+        sync: false
