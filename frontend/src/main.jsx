@@ -1470,10 +1470,12 @@ function Reports({ session }) {
   };
 
   const renderCell = (row, col) => {
+    const isProofNotRequired = row.paymentMode === "COUPON" || Number(row.collectedAmount) <= 0;
+
     if (col === "paymentVerified") {
       return (
         <select value={row.paymentVerified ? "VERIFIED" : "PENDING"} onChange={(e) => {
-          if (e.target.value === "VERIFIED" && !row.evidencePath) {
+          if (e.target.value === "VERIFIED" && !isProofNotRequired && (!row.evidencePath || row.evidencePath.trim() === "")) {
             setUploadStatus("❌ Error: Cannot verify payment without uploaded evidence.");
             setTimeout(() => setUploadStatus(""), 4000);
             e.target.value = "PENDING";
@@ -1495,8 +1497,12 @@ function Reports({ session }) {
               <a href={row.evidencePath} download={row.evidencePath.split('/').pop()} style={{ background: "#e2e8f0", color: "#334155", padding: "4px 8px", borderRadius: "4px", border: "1px solid #cbd5e1", cursor: "pointer", fontSize: "11px", textDecoration: "none", fontWeight: "bold" }}>Download</a>
               <button onClick={() => setConfirmDeleteId(row.id)} style={{ background: "#ef4444", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }}>Delete</button>
             </>
-          ) : <span style={{ color: "#94a3b8" }}>No Proof</span>}
-          <button onClick={() => triggerUpload(row.id)} style={{ background: "var(--primary)", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px" }}>Upload</button>
+          ) : (
+            <span style={{ color: "#94a3b8" }}>{isProofNotRequired ? "Not Required" : "No Proof"}</span>
+          )}
+          {!isProofNotRequired && (
+            <button onClick={() => triggerUpload(row.id)} style={{ background: "var(--primary)", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px" }}>Upload</button>
+          )}
         </div>
       );
     }

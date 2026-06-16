@@ -143,7 +143,9 @@ public class CouponCollectionController {
     public CouponCollectionDto updateVerification(@PathVariable Long id, @org.springframework.web.bind.annotation.RequestParam("verified") boolean verified, Authentication authentication, HttpServletRequest httpRequest) {
         CouponCollection collection = collectionRepository.findById(id).orElseThrow();
         
-        if (verified && (collection.getEvidencePath() == null || collection.getEvidencePath().trim().isEmpty())) {
+        boolean isProofRequired = collection.getCollectedAmount() != null && collection.getCollectedAmount().compareTo(java.math.BigDecimal.ZERO) > 0;
+        
+        if (verified && isProofRequired && (collection.getEvidencePath() == null || collection.getEvidencePath().trim().isEmpty())) {
             throw new IllegalArgumentException("Cannot verify payment without uploaded evidence.");
         }
         
