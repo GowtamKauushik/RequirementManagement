@@ -1075,7 +1075,6 @@ function Inventory({ canUpload }) {
             </div>
           ))
         )}
-      </div>        </div>
       </div>
     </section>
   );
