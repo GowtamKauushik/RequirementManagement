@@ -88,6 +88,24 @@ public class CouponCollectionController {
                 oldValue.toString(), null, auditService.ipAddress(httpRequest));
     }
 
+    @DeleteMapping("/{id}/evidence")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','USER')")
+    public CouponCollectionDto deleteEvidence(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
+        CouponCollection collection = collectionRepository.findById(id).orElseThrow();
+        CouponCollectionDto oldValue = CouponCollectionDto.from(collection);
+        
+        collection.setEvidencePath(null);
+        collection.setPaymentVerified(false);
+        collection.setModifiedBy(authentication.getName());
+        collection.setModifiedAt(java.time.Instant.now());
+        
+        CouponCollection saved = collectionRepository.save(collection);
+        CouponCollectionDto newValue = CouponCollectionDto.from(saved);
+        auditService.record(authentication.getName(), "COLLECTION", id, "Delete Evidence",
+                oldValue.toString(), newValue.toString(), auditService.ipAddress(httpRequest));
+        return newValue;
+    }
+
     @PostMapping("/{id}/evidence")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','USER')")
     public CouponCollectionDto uploadEvidence(@PathVariable Long id, @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file, Authentication authentication, HttpServletRequest httpRequest) throws java.io.IOException {
