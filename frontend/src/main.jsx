@@ -920,11 +920,13 @@ function Inventory({ canUpload }) {
           Object.entries(
             items.reduce((acc, row) => {
               const comp = row.product || "Uncategorized Company";
-              if (!acc[comp]) acc[comp] = [];
-              acc[comp].push(row);
+              if (!acc[comp]) acc[comp] = {};
+              const cat = row.category || "Uncategorized";
+              if (!acc[comp][cat]) acc[comp][cat] = [];
+              acc[comp][cat].push(row);
               return acc;
             }, {})
-          ).map(([company, companyItems]) => (
+          ).map(([company, categories]) => (
             <div key={company} style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.05)" }}>
               <div style={{ background: "#f8fafc", padding: "16px 20px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <h2 style={{ margin: 0, color: "#0f172a", fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}><Package size={20} color="#146c72"/> {company}</h2>
@@ -934,143 +936,151 @@ function Inventory({ canUpload }) {
                   setItems([{ id: newId, product: company === "Uncategorized Company" ? "" : company, category: "", variant: "", quantity: 0, price: 0 }, ...items]);
                 }} className="primary" style={{ padding: "6px 12px", fontSize: "0.85rem" }}><Plus size={14} /> Add Product</button>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px", padding: "20px" }}>
-                {companyItems.map(row => {
-                  const isEditing = pendingEdit[row.id] !== undefined;
-                  const val = (col) => isEditing ? pendingEdit[row.id][col] : row[col];
-                  const setVal = (col, value) => setPendingStatus({ ...pendingEdit, [row.id]: { ...(pendingEdit[row.id] || row), [col]: value } });
-                  const hasChanged = isEditing && JSON.stringify(pendingEdit[row.id]) !== JSON.stringify(row);
+              <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "24px" }}>
+                {Object.entries(categories).map(([category, companyItems]) => (
+                  <div key={category}>
+                    <h3 style={{ margin: "0 0 16px 0", color: "#146c72", fontSize: "1.05rem", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "0.5px", borderBottom: "2px solid #f1f5f9", paddingBottom: "8px" }}>
+                      {category}
+                    </h3>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "16px" }}>
+                      {companyItems.map(row => {
+                        const isEditing = pendingEdit[row.id] !== undefined;
+                        const val = (col) => isEditing ? pendingEdit[row.id][col] : row[col];
+                        const setVal = (col, value) => setPendingStatus({ ...pendingEdit, [row.id]: { ...(pendingEdit[row.id] || row), [col]: value } });
+                        const hasChanged = isEditing && JSON.stringify(pendingEdit[row.id]) !== JSON.stringify(row);
 
-                  const getCategoryIcon = (category) => {
-                    const cat = (category || "").toLowerCase();
-                    if (cat.includes("phone") || cat.includes("mobile")) return <Smartphone size={32} color="#146c72" />;
-                    if (cat.includes("laptop") || cat.includes("computer") || cat.includes("pc")) return <Laptop size={32} color="#146c72" />;
-                    if (cat.includes("monitor") || cat.includes("screen") || cat.includes("display")) return <Monitor size={32} color="#146c72" />;
-                    if (cat.includes("server") || cat.includes("network")) return <Server size={32} color="#146c72" />;
-                    if (cat.includes("audio") || cat.includes("headphone") || cat.includes("speaker") || cat.includes("sound")) return <Headphones size={32} color="#146c72" />;
-                    if (cat.includes("drive") || cat.includes("storage") || cat.includes("ssd") || cat.includes("hdd")) return <HardDrive size={32} color="#146c72" />;
-                    if (cat.includes("cpu") || cat.includes("processor") || cat.includes("chip")) return <Cpu size={32} color="#146c72" />;
-                    if (cat.includes("print")) return <Printer size={32} color="#146c72" />;
-                    if (cat.includes("mouse") || cat.includes("mice")) return <Mouse size={32} color="#146c72" />;
-                    if (cat.includes("keyboard")) return <Keyboard size={32} color="#146c72" />;
-                    return <Package size={32} color="#146c72" />;
-                  };
+                        const getCategoryIcon = (category) => {
+                          const cat = (category || "").toLowerCase();
+                          if (cat.includes("phone") || cat.includes("mobile")) return <Smartphone size={32} color="#146c72" />;
+                          if (cat.includes("laptop") || cat.includes("computer") || cat.includes("pc")) return <Laptop size={32} color="#146c72" />;
+                          if (cat.includes("monitor") || cat.includes("screen") || cat.includes("display")) return <Monitor size={32} color="#146c72" />;
+                          if (cat.includes("server") || cat.includes("network")) return <Server size={32} color="#146c72" />;
+                          if (cat.includes("audio") || cat.includes("headphone") || cat.includes("speaker") || cat.includes("sound")) return <Headphones size={32} color="#146c72" />;
+                          if (cat.includes("drive") || cat.includes("storage") || cat.includes("ssd") || cat.includes("hdd")) return <HardDrive size={32} color="#146c72" />;
+                          if (cat.includes("cpu") || cat.includes("processor") || cat.includes("chip")) return <Cpu size={32} color="#146c72" />;
+                          if (cat.includes("print")) return <Printer size={32} color="#146c72" />;
+                          if (cat.includes("mouse") || cat.includes("mice")) return <Mouse size={32} color="#146c72" />;
+                          if (cat.includes("keyboard")) return <Keyboard size={32} color="#146c72" />;
+                          return <Package size={32} color="#146c72" />;
+                        };
 
-                  return (
-                    <div key={row.id} className="inventory-card" style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "20px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", position: "relative", overflow: "hidden" }}>
-                      {deletingId === row.id && (
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, padding: "20px", textAlign: "center", backdropFilter: "blur(2px)" }}>
-                          {cardError && cardError.id === row.id ? (
-                            <>
-                              <AlertCircle size={36} color="#e11d48" style={{ marginBottom: "12px" }} />
-                              <h4 style={{ margin: "0 0 8px 0", color: "#e11d48", fontSize: "1.05rem" }}>Cannot Delete</h4>
-                              <p style={{ margin: "0 0 16px 0", fontSize: "0.85rem", color: "#475569", lineHeight: "1.4" }}>{cardError.msg}</p>
-                              <button type="button" onClick={() => { setDeletingId(null); setCardError(null); }} style={{ padding: "6px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontWeight: "bold", color: "#475569" }}>Okay</button>
-                            </>
-                          ) : (
-                            <>
-                              <AlertCircle size={36} color="#e11d48" style={{ marginBottom: "12px" }} />
-                              <h4 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "1.1rem" }}>Delete Item?</h4>
-                              <p style={{ margin: "0 0 16px 0", fontSize: "0.85rem", color: "#64748b" }}>This action cannot be undone.</p>
-                              <div style={{ display: "flex", gap: "12px" }}>
-                                <button type="button" onClick={() => { setDeletingId(null); setCardError(null); }} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontWeight: "bold", color: "#475569" }}>Cancel</button>
-                                <button type="button" onClick={async () => {
-                                  try {
-                                    await api(`/inventory/${row.id}`, { method: "DELETE" });
-                                    setDeletingId(null);
-                                    load();
-                                  } catch (err) {
-                                    let m = err.message;
-                                    try { m = JSON.parse(m).message || m; } catch(e) {}
-                                    setCardError({ id: row.id, msg: m });
-                                  }
-                                }} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#e11d48", color: "white", cursor: "pointer", fontWeight: "bold" }}>Delete</button>
+                        return (
+                          <div key={row.id} className="inventory-card" style={{ background: "white", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "20px", display: "flex", flexDirection: "column", gap: "12px", boxShadow: "0 2px 4px rgba(0,0,0,0.02)", position: "relative", overflow: "hidden" }}>
+                            {deletingId === row.id && (
+                              <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.95)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, padding: "20px", textAlign: "center", backdropFilter: "blur(2px)" }}>
+                                {cardError && cardError.id === row.id ? (
+                                  <>
+                                    <AlertCircle size={36} color="#e11d48" style={{ marginBottom: "12px" }} />
+                                    <h4 style={{ margin: "0 0 8px 0", color: "#e11d48", fontSize: "1.05rem" }}>Cannot Delete</h4>
+                                    <p style={{ margin: "0 0 16px 0", fontSize: "0.85rem", color: "#475569", lineHeight: "1.4" }}>{cardError.msg}</p>
+                                    <button type="button" onClick={() => { setDeletingId(null); setCardError(null); }} style={{ padding: "6px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontWeight: "bold", color: "#475569" }}>Okay</button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle size={36} color="#e11d48" style={{ marginBottom: "12px" }} />
+                                    <h4 style={{ margin: "0 0 8px 0", color: "#0f172a", fontSize: "1.1rem" }}>Delete Item?</h4>
+                                    <p style={{ margin: "0 0 16px 0", fontSize: "0.85rem", color: "#64748b" }}>This action cannot be undone.</p>
+                                    <div style={{ display: "flex", gap: "12px" }}>
+                                      <button type="button" onClick={() => { setDeletingId(null); setCardError(null); }} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", cursor: "pointer", fontWeight: "bold", color: "#475569" }}>Cancel</button>
+                                      <button type="button" onClick={async () => {
+                                        try {
+                                          await api(`/inventory/${row.id}`, { method: "DELETE" });
+                                          setDeletingId(null);
+                                          load();
+                                        } catch (err) {
+                                          let m = err.message;
+                                          try { m = JSON.parse(m).message || m; } catch(e) {}
+                                          setCardError({ id: row.id, msg: m });
+                                        }
+                                      }} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#e11d48", color: "white", cursor: "pointer", fontWeight: "bold" }}>Delete</button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                        <div style={{ background: "#f0fdfa", padding: "12px", borderRadius: "10px", display: "inline-flex" }}>
-                          {getCategoryIcon(val("category"))}
-                        </div>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          {hasChanged && (
-                            <button type="button" onClick={async () => {
-                                const isNew = String(row.id).startsWith("new-");
-                                const payload = { ...pendingEdit[row.id] };
-                                if (isNew) delete payload.id;
-                                await api(isNew ? `/inventory` : `/inventory/${row.id}`, { method: isNew ? "POST" : "PUT", body: JSON.stringify(payload) });
-                                const newPending = { ...pendingEdit };
-                                delete newPending[row.id];
-                                setPendingStatus(newPending);
-                                load();
-                            }} style={{ background: "#146c72", color: "white", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
-                              <Save size={14} /> Save
-                            </button>
-                          )}
-                          {!isEditing && (
-                            <button type="button" onClick={() => setPendingStatus({ ...pendingEdit, [row.id]: { ...row } })} style={{ background: "transparent", color: "#146c72", border: "1px solid #ccfbf1", padding: "6px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center" }} title="Edit">
-                              <Edit size={16} />
-                            </button>
-                          )}
-                          <button type="button" onClick={() => {
-                            const isNew = String(row.id).startsWith("new-");
-                            if (isNew) {
-                              setItems(prev => prev.filter(i => i.id !== row.id));
-                              const newPending = { ...pendingEdit };
-                              delete newPending[row.id];
-                              setPendingStatus(newPending);
-                            } else {
-                              setDeletingId(row.id);
-                            }
-                          }} style={{ background: "transparent", color: "#e11d48", border: "1px solid #fecdd3", padding: "6px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center" }} title="Delete">
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, marginTop: "8px" }}>
-                        {isEditing ? (
-                          <>
-                            <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} style={{ fontSize: "0.85rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
-                            <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
-                            <textarea placeholder="Product Description" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", resize: "vertical", minHeight: "60px", fontFamily: "inherit" }} />
-                          </>
-                        ) : (
-                          <>
-                            <div style={{ color: "#146c72", fontSize: "0.85rem", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.5px" }}>{row.category || "No Category"}</div>
-                            <h3 style={{ margin: "4px 0", fontSize: "1.2rem", color: "#0f172a", lineHeight: "1.3" }}>{row.variant || "No Product Description"}</h3>
-                          </>
-                        )}
-                      </div>
+                            )}
+                            
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                              <div style={{ background: "#f0fdfa", padding: "12px", borderRadius: "10px", display: "inline-flex" }}>
+                                {getCategoryIcon(val("category"))}
+                              </div>
+                              <div style={{ display: "flex", gap: "8px" }}>
+                                {hasChanged && (
+                                  <button type="button" onClick={async () => {
+                                      const isNew = String(row.id).startsWith("new-");
+                                      const payload = { ...pendingEdit[row.id] };
+                                      if (isNew) delete payload.id;
+                                      await api(isNew ? `/inventory` : `/inventory/${row.id}`, { method: isNew ? "POST" : "PUT", body: JSON.stringify(payload) });
+                                      const newPending = { ...pendingEdit };
+                                      delete newPending[row.id];
+                                      setPendingStatus(newPending);
+                                      load();
+                                  }} style={{ background: "#146c72", color: "white", border: "none", padding: "6px 12px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px" }}>
+                                    <Save size={14} /> Save
+                                  </button>
+                                )}
+                                {!isEditing && (
+                                  <button type="button" onClick={() => setPendingStatus({ ...pendingEdit, [row.id]: { ...row } })} style={{ background: "transparent", color: "#146c72", border: "1px solid #ccfbf1", padding: "6px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center" }} title="Edit">
+                                    <Edit size={16} />
+                                  </button>
+                                )}
+                                <button type="button" onClick={() => {
+                                  const isNew = String(row.id).startsWith("new-");
+                                  if (isNew) {
+                                    setItems(prev => prev.filter(i => i.id !== row.id));
+                                    const newPending = { ...pendingEdit };
+                                    delete newPending[row.id];
+                                    setPendingStatus(newPending);
+                                  } else {
+                                    setDeletingId(row.id);
+                                  }
+                                }} style={{ background: "transparent", color: "#e11d48", border: "1px solid #fecdd3", padding: "6px", borderRadius: "6px", cursor: "pointer", display: "flex", alignItems: "center" }} title="Delete">
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </div>
+                            
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, marginTop: "8px" }}>
+                              {isEditing ? (
+                                <>
+                                  <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} style={{ fontSize: "0.85rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                                  <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                                  <textarea placeholder="Product Description" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", resize: "vertical", minHeight: "60px", fontFamily: "inherit" }} />
+                                </>
+                              ) : (
+                                <>
+                                  <h3 style={{ margin: "4px 0", fontSize: "1.2rem", color: "#0f172a", lineHeight: "1.3" }}>{row.variant || "No Product Description"}</h3>
+                                </>
+                              )}
+                            </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #f1f5f9" }}>
-                        <div>
-                          <div style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "4px" }}>Quantity</div>
-                          {isEditing ? (
-                            <input type="number" value={val("quantity") === 0 ? 0 : (val("quantity") || "")} onChange={e => setVal("quantity", e.target.value === "" ? "" : Number(e.target.value))} style={{ width: "100%", padding: "4px 8px", border: "1px solid #cbd5e1", borderRadius: "4px" }} />
-                          ) : (
-                            <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: val("quantity") > 0 ? "#16a34a" : "#dc2626" }}>
-                              {row.quantity} <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>units</span>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #f1f5f9" }}>
+                              <div>
+                                <div style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "4px" }}>Quantity</div>
+                                {isEditing ? (
+                                  <input type="number" value={val("quantity") === 0 ? 0 : (val("quantity") || "")} onChange={e => setVal("quantity", e.target.value === "" ? "" : Number(e.target.value))} style={{ width: "100%", padding: "4px 8px", border: "1px solid #cbd5e1", borderRadius: "4px" }} />
+                                ) : (
+                                  <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: val("quantity") > 0 ? "#16a34a" : "#dc2626" }}>
+                                    {row.quantity} <span style={{ fontSize: "0.8rem", fontWeight: "normal" }}>units</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "4px" }}>Price</div>
+                                {isEditing ? (
+                                  <input type="number" value={val("price") === 0 ? 0 : (val("price") || "")} onChange={e => setVal("price", e.target.value === "" ? "" : Number(e.target.value))} style={{ width: "100%", padding: "4px 8px", border: "1px solid #cbd5e1", borderRadius: "4px" }} />
+                                ) : (
+                                  <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#0f172a" }}>
+                                    ₹{row.price}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <div>
-                          <div style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "4px" }}>Price</div>
-                          {isEditing ? (
-                            <input type="number" value={val("price") === 0 ? 0 : (val("price") || "")} onChange={e => setVal("price", e.target.value === "" ? "" : Number(e.target.value))} style={{ width: "100%", padding: "4px 8px", border: "1px solid #cbd5e1", borderRadius: "4px" }} />
-                          ) : (
-                            <div style={{ fontWeight: "bold", fontSize: "1.1rem", color: "#0f172a" }}>
-                              ₹{row.price}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                ))}
               </div>
             </div>
           ))
