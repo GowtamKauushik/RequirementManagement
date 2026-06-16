@@ -1607,7 +1607,7 @@ function Reports({ session }) {
   };
 
   const generateCashFlowCSV = () => {
-    const header = ["GRO", "Requirement", "Branch Manager", "Deposited to Company", "Amount with GRO", "Pending Bank (UPI)", "Coupon Amount", "Status"];
+    const header = ["Collection Made By", "Requirement", "Branch Manager", "Deposited to Company", "Amount with GRO", "Pending Bank (UPI)", "Coupon Amount", "Status"];
     const rows = cashFlowData.map(cf => [
       cf.gro,
       cf.requirement,
@@ -2028,7 +2028,8 @@ function Table({ rows, columns, onEdit, onDelete, renderCell, customAction, empt
 }
 
 function label(value) {
-  if (value === "gro" || value === "groEmail") return "GRO";
+  if (value === "gro") return "Collection Made By";
+  if (value === "groEmail") return "GRO";
   if (value === "admin" || value === "adminEmail") return "Branch Manager";
   if (value === "assignedAdminName") return "Assigned Branch Manager";
   return value.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
