@@ -37,11 +37,20 @@ public class UserController {
     }
 
     @GetMapping("/assignable")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
-    public List<UserDto> assignableUsers() {
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','USER')")
+    public List<UserDto> assignableUsers(Authentication authentication) {
+        User currentUser = userRepository.findByEmail(authentication.getName()).orElseThrow();
         return userRepository.findAll().stream()
                 .filter(User::isActive)
-                .filter(user -> user.getRole() != Role.SUPER_ADMIN)
+                .filter(user -> {
+                    if (currentUser.getRole() == Role.SUPER_ADMIN) {
+                        return true;
+                    } else if (currentUser.getRole() == Role.ADMIN) {
+                        return user.getId().equals(currentUser.getId()) || (user.getRole() == Role.USER && user.getAssignedAdmin() != null && user.getAssignedAdmin().getId().equals(currentUser.getId()));
+                    } else {
+                        return user.getId().equals(currentUser.getId());
+                    }
+                })
                 .map(UserDto::from)
                 .toList();
     }

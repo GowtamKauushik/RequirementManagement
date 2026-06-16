@@ -469,7 +469,7 @@ function Customers({ canEdit, session }) {
 
   const load = () => {
     const customersRequest = api("/customers").catch(() => []);
-    const usersRequest = (canEdit && session?.role !== "USER") ? api("/users/assignable").catch(() => []) : Promise.resolve([]);
+    const usersRequest = canEdit ? api("/users/assignable").catch(() => []) : Promise.resolve([]);
     return Promise.all([customersRequest, usersRequest]).then(([customers, assignableUsers]) => {
       const visCust = applyVisibility(customers, "customers", session, assignableUsers);
       if (!visCust.length) {
