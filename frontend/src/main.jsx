@@ -942,8 +942,8 @@ function Inventory({ canUpload }) {
                         const newId = "new-" + Date.now();
                         const p = company === "Uncategorized Company" ? "" : company;
                         const c = category === "Uncategorized" ? "" : category;
-                        setPendingStatus({ ...pendingEdit, [newId]: { id: newId, product: p, category: c, variant: "", quantity: 0, price: 0 } });
-                        setItems([{ id: newId, product: p, category: c, variant: "", quantity: 0, price: 0 }, ...items]);
+                        setPendingStatus({ ...pendingEdit, [newId]: { id: newId, product: p, category: c, variant: "", quantity: 0, price: 0, _fromGroup: true } });
+                        setItems([{ id: newId, product: p, category: c, variant: "", quantity: 0, price: 0, _fromGroup: true }, ...items]);
                       }} style={{ padding: "4px 10px", fontSize: "0.8rem", background: "white", color: "#146c72", border: "1px solid #146c72", borderRadius: "6px", display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", fontWeight: "bold" }}>
                         <Plus size={14} /> Add Product
                       </button>
@@ -1048,7 +1048,7 @@ function Inventory({ canUpload }) {
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, marginTop: "8px" }}>
                               {isEditing ? (
                                 <>
-                                  <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} style={{ fontSize: "0.85rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                                  <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} disabled={pendingEdit[row.id]?._fromGroup} style={{ fontSize: "0.85rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", background: pendingEdit[row.id]?._fromGroup ? "#f1f5f9" : "white", color: pendingEdit[row.id]?._fromGroup ? "#94a3b8" : "inherit" }} />
                                   <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
                                   <textarea placeholder="Product Description" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", resize: "vertical", minHeight: "60px", fontFamily: "inherit" }} />
                                 </>
