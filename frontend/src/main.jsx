@@ -588,7 +588,7 @@ function Customers({ canEdit, session }) {
 }
 
 function Requirements({ canDelete, session }) {
-  const empty = { customerId: "", title: "", description: "", priority: "MEDIUM", status: "ACTIVE", dueDate: "", quantity: "" };
+  const empty = { customerId: "", title: "", category: "", description: "", priority: "MEDIUM", status: "ACTIVE", dueDate: "", quantity: "" };
   const [items, setItems] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [form, setForm] = useState(empty);
@@ -766,36 +766,55 @@ function Requirements({ canDelete, session }) {
             {customers.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
-        <label>Product Name (Title)
-          <select value={form.title || ""} onChange={(e) => {
-            const val = e.target.value;
-            setForm({ ...form, title: val });
-            const selectedInv = inventory.find(i => i.product === val);
-            if (selectedInv) {
-              if (selectedInv.quantity > 0) {
-                setStockInfo({ message: `Product stock available! (Quantity: ${selectedInv.quantity})`, type: "success" });
-              } else {
-                setStockInfo({ message: "Product out of stock!", type: "error" });
-              }
-              setTimeout(() => setStockInfo({ message: "", type: "" }), 4000);
-            }
-          }} required>
-            <option value="">Select Product from Inventory</option>
+        <label>Product Company
+          <select value={form.title || ""} onChange={(e) => setForm({ ...form, title: e.target.value, category: "", description: "" })} required>
+            <option value="">Select Company</option>
             {Array.from(new Set(inventory.map(i => i.product).filter(Boolean))).map((product) => (
               <option key={product} value={product}>{product}</option>
             ))}
           </select>
         </label>
+        {form.title && (
+          <label>Subcategory
+            <select value={form.category || ""} onChange={(e) => setForm({ ...form, category: e.target.value, description: "" })} required>
+              <option value="">Select Subcategory</option>
+              {Array.from(new Set(inventory.filter(i => i.product === form.title).map(i => i.category).filter(Boolean))).map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        {form.title && form.category && (
+          <label>Product Description
+            <select value={form.description || ""} onChange={(e) => {
+              const val = e.target.value;
+              setForm({ ...form, description: val });
+              const selectedInv = inventory.find(i => i.product === form.title && i.category === form.category && i.variant === val);
+              if (selectedInv) {
+                if (selectedInv.quantity > 0) {
+                  setStockInfo({ message: `Product stock available! (Quantity: ${selectedInv.quantity})`, type: "success" });
+                } else {
+                  setStockInfo({ message: "Product out of stock!", type: "error" });
+                }
+                setTimeout(() => setStockInfo({ message: "", type: "" }), 4000);
+              }
+            }} required>
+              <option value="">Select Product Description</option>
+              {Array.from(new Set(inventory.filter(i => i.product === form.title && i.category === form.category).map(i => i.variant).filter(Boolean))).map((variant) => (
+                <option key={variant} value={variant}>{variant}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>Quantity
           <input type="number" min="1" value={form.quantity || ""} onChange={(e) => {
             const qty = Number(e.target.value);
             setForm({ ...form, quantity: e.target.value });
-            if (form.title) {
-              const selectedInv = inventory.find(i => i.product === form.title);
+            if (form.description) {
+              const selectedInv = inventory.find(i => i.product === form.title && i.category === form.category && i.variant === form.description);
               if (selectedInv) {
-                const totalAvailable = inventory.filter(i => i.product === form.title).reduce((sum, i) => sum + i.quantity, 0);
-                if (qty > totalAvailable) {
-                  setStockInfo({ message: `Product out of stock! Requested ${qty} but only ${totalAvailable} available.`, type: "error" });
+                if (qty > selectedInv.quantity) {
+                  setStockInfo({ message: `Product out of stock! Requested ${qty} but only ${selectedInv.quantity} available.`, type: "error" });
                 } else {
                   setStockInfo({ message: `Stock available.`, type: "success" });
                 }
@@ -808,7 +827,6 @@ function Requirements({ canDelete, session }) {
             {stockInfo.message}
           </div>
         )}
-        <label>Description<textarea value={form.description || ""} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
         <label>Priority<select value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>{priorities.map((v) => <option key={v}>{v}</option>)}</select></label>
         <label>Status<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{statuses.map((v) => <option key={v}>{v}</option>)}</select></label>
         <label>Due Date<input type="date" value={form.dueDate || ""} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></label>
@@ -828,11 +846,17 @@ function Requirements({ canDelete, session }) {
         {successMsg && <div className="success" style={{ padding: "1rem", background: "var(--surface)", color: "var(--primary)", borderLeft: "4px solid var(--primary)", borderRadius: "var(--radius)", marginBottom: "1rem" }}>{successMsg}</div>}
 
         {activeTab === "active" && (
-          <Table rows={activeItems.map((r) => ({ ...r, customerName: r.customer?.name, customerId: r.customer?.id }))} columns={["customerName", "title", "quantity", "assignedUser", "description", "priority", "status", "dueDate", "modifiedAt", "modifiedBy"]} renderCell={renderCell} onEdit={(row) => setForm({ ...row, customerId: row.customer?.id })} customAction={actionCell} emptyMessage={emptyMsg} />
+          <Table rows={activeItems.map((r) => ({ ...r, customerName: r.customer?.name, customerId: r.customer?.id }))} columns={["customerName", "title", "quantity", "assignedUser", "description", "priority", "status", "dueDate", "modifiedAt", "modifiedBy"]} renderCell={renderCell} onEdit={(row) => {
+            const selectedInv = inventory.find(i => i.product === row.title && i.variant === row.description);
+            setForm({ ...row, customerId: row.customer?.id, category: selectedInv ? selectedInv.category : "" });
+          }} customAction={actionCell} emptyMessage={emptyMsg} />
         )}
 
         {activeTab === "completed" && (
-          <Table rows={completedItems.map((r) => ({ ...r, customerName: r.customer?.name, customerId: r.customer?.id }))} columns={["customerName", "title", "quantity", "assignedUser", "description", "priority", "status", "dueDate", "modifiedAt", "modifiedBy"]} renderCell={renderCell} onEdit={(row) => setForm({ ...row, customerId: row.customer?.id })} customAction={actionCell} emptyMessage={emptyMsg} />
+          <Table rows={completedItems.map((r) => ({ ...r, customerName: r.customer?.name, customerId: r.customer?.id }))} columns={["customerName", "title", "quantity", "assignedUser", "description", "priority", "status", "dueDate", "modifiedAt", "modifiedBy"]} renderCell={renderCell} onEdit={(row) => {
+            const selectedInv = inventory.find(i => i.product === row.title && i.variant === row.description);
+            setForm({ ...row, customerId: row.customer?.id, category: selectedInv ? selectedInv.category : "" });
+          }} customAction={actionCell} emptyMessage={emptyMsg} />
         )}
       </div>
     </section>
