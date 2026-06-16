@@ -69,11 +69,16 @@ public class InventoryService {
                     continue;
                 }
                 
-                String category = text(row, 0);
-                String product = text(row, 1);
-                String variant = text(row, 2);
-                Integer quantity = integer(row, 3);
-                BigDecimal price = decimal(row, 4);
+                String category = text(row, 1);
+                String product = text(row, 2);
+                
+                if (category.equalsIgnoreCase("Category") || product.equalsIgnoreCase("BRAND")) {
+                    continue;
+                }
+                
+                String variant = text(row, 3);
+                Integer quantity = integer(row, 4);
+                BigDecimal price = decimal(row, 5);
                 
                 String key = (category + "|" + product + "|" + variant).toLowerCase();
                 
@@ -103,7 +108,7 @@ public class InventoryService {
     }
 
     private boolean isBlank(Row row) {
-        for (int i = 0; i <= 4; i++) {
+        for (int i = 1; i <= 5; i++) {
             if (!text(row, i).isBlank()) {
                 return false;
             }
@@ -126,8 +131,12 @@ public class InventoryService {
         if (cell.getCellType() == CellType.NUMERIC) {
             return (int) cell.getNumericCellValue();
         }
-        String value = formatter.formatCellValue(cell).trim();
-        return value.isBlank() ? 0 : Integer.parseInt(value);
+        String value = formatter.formatCellValue(cell).trim().replace(",", "");
+        try {
+            return value.isBlank() ? 0 : Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private BigDecimal decimal(Row row, int index) {
@@ -138,7 +147,11 @@ public class InventoryService {
         if (cell.getCellType() == CellType.NUMERIC) {
             return BigDecimal.valueOf(cell.getNumericCellValue());
         }
-        String value = formatter.formatCellValue(cell).trim();
-        return value.isBlank() ? BigDecimal.ZERO : new BigDecimal(value);
+        String value = formatter.formatCellValue(cell).trim().replace(",", "");
+        try {
+            return value.isBlank() ? BigDecimal.ZERO : new BigDecimal(value);
+        } catch (NumberFormatException e) {
+            return BigDecimal.ZERO;
+        }
     }
 }

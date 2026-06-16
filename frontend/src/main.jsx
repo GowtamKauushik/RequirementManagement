@@ -1011,14 +1011,15 @@ function Inventory({ canUpload }) {
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, marginTop: "8px" }}>
                     {isEditing ? (
                       <>
-                        <input placeholder="Product" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
                         <input placeholder="Category" value={val("category") || ""} onChange={e => setVal("category", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
-                        <input placeholder="Variant" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                        <input placeholder="Product Company" value={val("product") || ""} onChange={e => setVal("product", e.target.value)} style={{ fontWeight: "bold", fontSize: "1.1rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px" }} />
+                        <textarea placeholder="Product Description" value={val("variant") || ""} onChange={e => setVal("variant", e.target.value)} style={{ fontSize: "0.9rem", border: "1px solid #cbd5e1", borderRadius: "4px", padding: "4px 8px", resize: "vertical", minHeight: "60px", fontFamily: "inherit" }} />
                       </>
                     ) : (
                       <>
-                        <h3 style={{ margin: "0", fontSize: "1.2rem", color: "#0f172a", cursor: "pointer" }} onClick={() => setVal("product", row.product)} title="Click to edit product name">{row.product || "New Product"}</h3>
-                        <div style={{ color: "#64748b", fontSize: "0.9rem", cursor: "pointer" }} onClick={() => setVal("category", row.category)} title="Click to edit category/variant">{row.category || "No Category"} • {row.variant || "Standard"}</div>
+                        <div style={{ color: "#146c72", fontSize: "0.85rem", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer" }} onClick={() => setVal("category", row.category)} title="Click to edit category">{row.category || "No Category"}</div>
+                        <h3 style={{ margin: "4px 0", fontSize: "1.2rem", color: "#0f172a", cursor: "pointer" }} onClick={() => setVal("product", row.product)} title="Click to edit product company">{row.product || "New Product Company"}</h3>
+                        <div style={{ color: "#64748b", fontSize: "0.95rem", cursor: "pointer", lineHeight: "1.4" }} onClick={() => setVal("variant", row.variant)} title="Click to edit product description">{row.variant || "No Product Description"}</div>
                       </>
                     )}
                   </div>
