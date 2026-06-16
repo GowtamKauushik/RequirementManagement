@@ -1522,7 +1522,8 @@ function Reports({ session }) {
           adminEmail: c.collectorAssignedAdminEmail,
           deposited: 0,
           withGro: 0,
-          pendingBank: 0
+          pendingBank: 0,
+          couponAmount: 0
         });
       }
       const entry = cashFlowMap.get(key);
@@ -1535,6 +1536,9 @@ function Reports({ session }) {
           entry.pendingBank += Number(c.collectedAmount || 0);
         }
       }
+      if (c.couponAvailable) {
+        entry.couponAmount += Number(c.couponValue || 0);
+      }
     });
   }
   const cashFlowData = Array.from(cashFlowMap.values()).map((cf, idx) => ({
@@ -1544,7 +1548,7 @@ function Reports({ session }) {
   }));
 
   const renderCashFlowCell = (row, col) => {
-    if (col === "deposited" || col === "withGro" || col === "pendingBank") {
+    if (col === "deposited" || col === "withGro" || col === "pendingBank" || col === "couponAmount") {
       return `₹${row[col].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     if (col === "status") {
@@ -1603,13 +1607,15 @@ function Reports({ session }) {
   };
 
   const generateCashFlowCSV = () => {
-    const header = ["GRO", "Requirement", "Branch Manager", "Deposited to Company", "Amount with GRO", "Status"];
+    const header = ["GRO", "Requirement", "Branch Manager", "Deposited to Company", "Amount with GRO", "Pending Bank (UPI)", "Coupon Amount", "Status"];
     const rows = cashFlowData.map(cf => [
       cf.gro,
       cf.requirement,
       cf.admin,
       cf.deposited.toFixed(2),
       cf.withGro.toFixed(2),
+      cf.pendingBank.toFixed(2),
+      cf.couponAmount.toFixed(2),
       cf.status
     ]);
     const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].map(e => e.join(",")).join("\n");
@@ -1626,6 +1632,7 @@ function Reports({ session }) {
   const totalWithGro = cashFlowData.reduce((sum, item) => sum + item.withGro, 0);
   const totalPendingBank = cashFlowData.reduce((sum, item) => sum + item.pendingBank, 0);
   const pendingCount = cashFlowData.filter(i => i.status === "PENDING SETTLEMENT").length;
+  const totalCouponAmount = items.filter(c => c.couponAvailable).reduce((sum, c) => sum + Number(c.couponValue || 0), 0);
 
   return (
     <section>
@@ -1643,27 +1650,51 @@ function Reports({ session }) {
               <Download size={16} /> Export CSV
             </button>
           )}
+          {reportTab === "collections" && items.length > 0 && (
+            <button onClick={() => {
+              const header = ["Customer", "Requirement", "Product Value", "Collected Amount", "Coupon Amount", "Payment Mode", "Verified", "Date"];
+              const rows = items.map(c => [
+                c.customerName, c.requirementTitle, c.productValue, c.collectedAmount, (c.couponAvailable ? c.couponValue : 0), c.paymentMode, c.paymentVerified ? "Yes" : "No", c.collectionDate
+              ]);
+              const csvContent = "data:text/csv;charset=utf-8," + [header, ...rows].map(e => e.join(",")).join("\n");
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", `collections_report_${new Date().toISOString().split('T')[0]}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }} style={{ background: "#10b981", color: "white", padding: "8px 16px", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Download size={16} /> Export CSV
+            </button>
+          )}
         </div>
       </div>
       <input type="file" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} accept="image/*" />
       
       {reportTab === "collections" ? (
-        <Table
-          rows={items}
-          columns={["customerName", "requirementTitle", "productValue", "collectedAmount", "paymentMode", "paymentVerified", "evidencePath", "collectionDate"]}
-          renderCell={renderCell}
-          emptyMessage="No collections to report yet"
-        />
+        <>
+          <div className="dashboard-row" style={{ marginBottom: "20px", gridTemplateColumns: "1fr" }}>
+            <Stat label="Total Coupon Amount Collected" value={`₹${totalCouponAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<Package size={24} />} color="purple" />
+          </div>
+          <Table
+            rows={items}
+            columns={["customerName", "requirementTitle", "productValue", "collectedAmount", "paymentMode", "paymentVerified", "evidencePath", "collectionDate"]}
+            renderCell={renderCell}
+            emptyMessage="No collections to report yet"
+          />
+        </>
       ) : (
         <>
           <div className="dashboard-row" style={{ marginBottom: "20px" }}>
             <Stat label="Total Deposited" value={`₹${totalDeposited.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<Wallet size={24} />} color="green" />
             <Stat label="Total Pending with GROs" value={`₹${totalWithGro.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<Activity size={24} />} color="orange" />
             <Stat label="Pending Verification (Bank)" value={`₹${totalPendingBank.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<AlertCircle size={24} />} color="indigo" />
+            <Stat label="Total Coupon Amount" value={`₹${totalCouponAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} icon={<Package size={24} />} color="purple" />
           </div>
           <Table
           rows={cashFlowData}
-          columns={["gro", "requirement", "admin", "deposited", "withGro", "pendingBank", "status"]}
+          columns={["gro", "requirement", "admin", "deposited", "withGro", "pendingBank", "couponAmount", "status"]}
           renderCell={renderCashFlowCell}
           customAction={cashFlowActionCell}
           emptyMessage="No cash flow data available."
