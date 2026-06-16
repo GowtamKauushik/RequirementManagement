@@ -1194,6 +1194,9 @@ function Collections({ canEdit, session }) {
   });
   useEffect(() => { load(); }, []);
 
+  const additionalAmt = (Number(form.productValue || 0) * Number(form.quantity || 1)) - Number(form.couponAvailable ? form.couponValue || 0 : 0);
+  const isFullyCovered = form.couponAvailable && additionalAmt <= 0;
+
   async function saveForm(event) {
     event.preventDefault();
     const payload = {
@@ -1202,8 +1205,9 @@ function Collections({ canEdit, session }) {
       requirementId: form.requirementId ? Number(form.requirementId) : null,
       couponValue: Number(form.couponValue || 0),
       productValue: Number(form.productValue || 0),
-      collectedAmount: Number(form.collectedAmount || 0),
-      collectedById: session.role !== "USER" ? Number(form.collectedById) : null
+      collectedAmount: isFullyCovered ? 0 : Number(form.collectedAmount || 0),
+      collectedById: session.role !== "USER" ? Number(form.collectedById) : null,
+      paymentMode: isFullyCovered ? "COUPON" : form.paymentMode
     };
     if (!payload.couponAvailable) {
       payload.couponNumber = "";
@@ -1319,7 +1323,7 @@ function Collections({ canEdit, session }) {
           <div style={{ display: "flex", gap: "1rem" }}>
             <label style={{ flex: 1 }}>Product Value<input type="number" step="0.01" value={form.productValue} onChange={(e) => setForm({ ...form, productValue: e.target.value })} disabled={!!form.requirementId} style={{ background: form.requirementId ? "#f1f5f9" : "white", cursor: form.requirementId ? "not-allowed" : "text" }} required /></label>
             <label style={{ flex: 1 }}>Quantity<input type="number" min="1" value={form.quantity || "1"} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required /></label>
-            <label style={{ flex: 1 }}>Collected Amt<input type="number" step="0.01" value={form.collectedAmount} onChange={(e) => setForm({ ...form, collectedAmount: e.target.value })} required /></label>
+            <label style={{ flex: 1 }}>Collected Amt<input type="number" step="0.01" value={isFullyCovered ? 0 : form.collectedAmount} onChange={(e) => setForm({ ...form, collectedAmount: e.target.value })} disabled={isFullyCovered} style={{ background: isFullyCovered ? "#f1f5f9" : "white", cursor: isFullyCovered ? "not-allowed" : "text" }} required /></label>
           </div>
           <div style={{ padding: "10px", background: "#f8fafc", borderRadius: "6px", fontSize: "0.9rem", color: "#475569", border: "1px solid #e2e8f0" }}>
             <strong>Addl Amount Needed: </strong>
@@ -1338,9 +1342,10 @@ function Collections({ canEdit, session }) {
             </label>
           )}
           <label>Payment Mode
-            <select value={form.paymentMode || "CASH"} onChange={(e) => setForm({ ...form, paymentMode: e.target.value })} required>
+            <select value={isFullyCovered ? "COUPON" : (form.paymentMode || "CASH")} onChange={(e) => setForm({ ...form, paymentMode: e.target.value })} disabled={isFullyCovered} style={{ background: isFullyCovered ? "#f1f5f9" : "white", cursor: isFullyCovered ? "not-allowed" : "pointer" }} required>
               <option value="CASH">CASH</option>
               <option value="UPI">UPI</option>
+              {isFullyCovered && <option value="COUPON">COUPON ONLY</option>}
             </select>
           </label>
           <label>Date<input type="date" value={form.collectionDate} onChange={(e) => setForm({ ...form, collectionDate: e.target.value })} required /></label>

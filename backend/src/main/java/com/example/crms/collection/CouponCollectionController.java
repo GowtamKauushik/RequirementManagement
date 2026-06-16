@@ -45,6 +45,12 @@ public class CouponCollectionController {
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','USER')")
     public CouponCollectionDto create(@Valid @RequestBody CouponCollectionRequest request, Authentication authentication, HttpServletRequest httpRequest) {
         CouponCollection saved = collectionRepository.save(applyRequest(new CouponCollection(), request, authentication.getName()));
+        
+        if (saved.getCollectedAmount() == null || saved.getCollectedAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            saved.setPaymentVerified(true);
+            saved = collectionRepository.save(saved);
+        }
+        
         CouponCollectionDto dto = CouponCollectionDto.from(saved);
         auditService.record(authentication.getName(), "COLLECTION", saved.getId(), "Create Coupon Collection",
                 null, dto.toString(), auditService.ipAddress(httpRequest));
@@ -68,7 +74,10 @@ public class CouponCollectionController {
         
         CouponCollection saved = collectionRepository.save(applyRequest(collection, request, authentication.getName()));
         
-        if (requiresReverification) {
+        if (saved.getCollectedAmount() == null || saved.getCollectedAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            saved.setPaymentVerified(true);
+            saved = collectionRepository.save(saved);
+        } else if (requiresReverification) {
             saved.setPaymentVerified(false);
             saved = collectionRepository.save(saved);
         }
