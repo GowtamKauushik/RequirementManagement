@@ -1334,6 +1334,7 @@ function Reports({ session }) {
   const fileInputRef = useRef(null);
   const [selectedRowId, setSelectedRowId] = useState(null);
   const [reportTab, setReportTab] = useState("collections");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const load = () => Promise.all([
     api("/collections").catch(() => []),
@@ -1344,7 +1345,6 @@ function Reports({ session }) {
   useEffect(() => { load(); }, []);
 
   const deleteEvidence = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this proof? This will reset verification to PENDING.")) return;
     try {
       const sessionData = JSON.parse(localStorage.getItem("crms-session") || "null");
       const token = sessionData?.token;
@@ -1362,6 +1362,8 @@ function Reports({ session }) {
       }
     } catch (error) {
       setUploadStatus(`Error: ${error.message}`);
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -1445,7 +1447,7 @@ function Reports({ session }) {
             <>
               <a href={row.evidencePath} target="_blank" rel="noreferrer" style={{ color: "var(--primary)", textDecoration: "underline" }}>View Proof</a>
               <a href={row.evidencePath} download={row.evidencePath.split('/').pop()} style={{ background: "#e2e8f0", color: "#334155", padding: "4px 8px", borderRadius: "4px", border: "1px solid #cbd5e1", cursor: "pointer", fontSize: "11px", textDecoration: "none", fontWeight: "bold" }}>Download</a>
-              <button onClick={() => deleteEvidence(row.id)} style={{ background: "#ef4444", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }}>Delete</button>
+              <button onClick={() => setConfirmDeleteId(row.id)} style={{ background: "#ef4444", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: "bold" }}>Delete</button>
             </>
           ) : <span style={{ color: "#94a3b8" }}>No Proof</span>}
           <button onClick={() => triggerUpload(row.id)} style={{ background: "var(--primary)", color: "white", padding: "4px 8px", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "11px" }}>Upload</button>
@@ -1615,6 +1617,18 @@ function Reports({ session }) {
           emptyMessage="No cash flow data available."
         />
         </>
+      )}
+      {confirmDeleteId && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}>
+          <div style={{ background: "white", padding: "24px", borderRadius: "12px", maxWidth: "400px", width: "90%", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+            <h3 style={{ margin: "0 0 16px 0", color: "#0f172a", fontSize: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}><AlertCircle color="#ef4444" size={24} /> Delete Proof?</h3>
+            <p style={{ margin: "0 0 24px 0", color: "#475569", lineHeight: "1.5" }}>Are you sure you want to delete this proof? This action cannot be undone, and the payment verification status will be reset to <strong>PENDING</strong>.</p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ padding: "8px 16px", borderRadius: "6px", border: "1px solid #cbd5e1", background: "white", color: "#334155", cursor: "pointer", fontWeight: "bold" }}>Cancel</button>
+              <button onClick={() => deleteEvidence(confirmDeleteId)} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#ef4444", color: "white", cursor: "pointer", fontWeight: "bold" }}>Yes, Delete</button>
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
