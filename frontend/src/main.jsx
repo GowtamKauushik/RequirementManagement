@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { ClipboardList, LogOut, Shield, Users, Building2, History, Plus, Save, Trash2, Package, Upload, BadgePercent, Users2, FileText, AlertCircle, PackageX, Activity, Wallet, TrendingUp, Download, Bell, Eye, EyeOff, Smartphone, Monitor, Laptop, Server, Headphones, HardDrive, Cpu, Printer, Mouse, Keyboard } from "lucide-react";
+import { ClipboardList, LogOut, Shield, Users, Building2, History, Plus, Save, Trash2, Package, Upload, BadgePercent, Users2, FileText, AlertCircle, PackageX, Activity, Wallet, TrendingUp, Download, Bell, Eye, EyeOff, Smartphone, Monitor, Laptop, Server, Headphones, HardDrive, Cpu, Printer, Mouse, Keyboard, Edit } from "lucide-react";
 import "./styles.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
