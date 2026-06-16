@@ -266,6 +266,15 @@ function Dashboard({ setTab, session }) {
   const completedReq = data.requirements.filter(r => r.status === "COMPLETED").length;
   const totalReq = data.requirements.length;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const overdueReqs = data.requirements.filter(r => {
+    if (r.status === "COMPLETED") return false;
+    if (!r.dueDate) return false;
+    const dueDate = new Date(r.dueDate);
+    return dueDate < today;
+  });
+
   const withGro = data.collections.filter(c => !c.paymentVerified && c.paymentMode === "CASH").reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
   const withAdmin = data.collections.filter(c => !c.paymentVerified && c.paymentMode !== "CASH").reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
   const depositedAmount = data.collections.filter(c => c.paymentVerified).reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
@@ -356,6 +365,33 @@ function Dashboard({ setTab, session }) {
                 <span style={{ fontWeight: "bold" }}>Completed: {completedReq}</span>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="dashboard-row" style={{ gridTemplateColumns: "1fr" }}>
+        <div className="dashboard-card overdue-requirements" style={{ padding: "24px", borderTop: "4px solid #ef4444" }}>
+          <div className="card-header">
+            <h3>Overdue Requirements</h3>
+            <AlertCircle size={20} color="#ef4444" />
+          </div>
+          <div style={{ marginTop: "16px", maxHeight: "300px", overflowY: "auto", border: "1px solid #e2e8f0", borderRadius: "8px" }}>
+            {overdueReqs.length === 0 ? <div style={{ padding: "16px", textAlign: "center", color: "#64748b", fontWeight: "bold" }}>No overdue requirements.</div> : (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                {overdueReqs.map(r => (
+                  <li key={r.id} style={{ padding: "12px 16px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fef2f2" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <span style={{ fontWeight: "bold", color: "#991b1b", fontSize: "1.05rem" }}>{r.title} - {r.description}</span>
+                      <span style={{ fontSize: "0.85rem", color: "#b91c1c" }}>Assigned to: {r.assignedUser?.name || "Unassigned"}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
+                      <span style={{ fontWeight: "bold", color: "#dc2626", background: "#fee2e2", padding: "4px 8px", borderRadius: "4px", fontSize: "0.8rem" }}>Due: {r.dueDate}</span>
+                      <span style={{ fontSize: "0.8rem", color: "#991b1b", fontWeight: "bold" }}>Customer: {r.customer?.name}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>
