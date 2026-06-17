@@ -2001,14 +2001,22 @@ function EntityForm({ title, form, setForm, onSubmit, fields }) {
   );
 }
 
-function Table({ rows, columns, onEdit, onDelete, renderCell, customAction, emptyMessage = "No records yet" }) {
+function Table({ rows, columns, onEdit, onDelete, renderCell, customAction, emptyMessage = "No records yet", itemsPerPage = 10 }) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const maxPage = Math.ceil(rows.length / itemsPerPage) || 1;
+  const currentData = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  useEffect(() => {
+    if (currentPage > maxPage) setCurrentPage(Math.max(1, maxPage));
+  }, [rows.length, maxPage, currentPage]);
+
   return (
     <div className="table-wrap">
       <table>
         <thead><tr>{columns.map((col) => <th key={col}>{label(col)}</th>)}{(onEdit || onDelete || customAction) && <th></th>}</tr></thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={row.id}>
+          {currentData.map((row, idx) => (
+            <tr key={row.id ?? idx}>
               {columns.map((col) => {
                 let cellVal = renderCell ? renderCell(row, col) : String(row[col] ?? "");
                 if (col === "role" && (row[col] === "SUPER_ADMIN" || row[col] === "ADMIN" || row[col] === "USER")) {
@@ -2028,6 +2036,17 @@ function Table({ rows, columns, onEdit, onDelete, renderCell, customAction, empt
           {!rows.length && <tr><td colSpan={columns.length + 1} className="empty">{emptyMessage}</td></tr>}
         </tbody>
       </table>
+      {maxPage > 1 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 20px", borderTop: "1px solid #e5ebf2", background: "#f8fafc", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px" }}>
+          <span style={{ fontSize: "14px", color: "#64748b", fontWeight: "600" }}>
+            Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, rows.length)} of {rows.length} entries
+          </span>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} style={{ padding: "6px 12px", border: "1px solid #d8e0ea", borderRadius: "6px", background: currentPage === 1 ? "#f1f5f9" : "white", color: currentPage === 1 ? "#94a3b8" : "#334155", cursor: currentPage === 1 ? "not-allowed" : "pointer", fontWeight: "600" }}>Previous</button>
+            <button onClick={() => setCurrentPage(p => Math.min(maxPage, p + 1))} disabled={currentPage === maxPage} style={{ padding: "6px 12px", border: "1px solid #d8e0ea", borderRadius: "6px", background: currentPage === maxPage ? "#f1f5f9" : "white", color: currentPage === maxPage ? "#94a3b8" : "#334155", cursor: currentPage === maxPage ? "not-allowed" : "pointer", fontWeight: "600" }}>Next</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
