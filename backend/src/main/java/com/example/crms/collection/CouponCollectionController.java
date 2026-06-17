@@ -51,6 +51,17 @@ public class CouponCollectionController {
             saved = collectionRepository.save(saved);
         }
         
+        if (saved.getRequirement() != null) {
+            com.example.crms.requirement.Requirement req = saved.getRequirement();
+            int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
+                    .mapToInt(CouponCollection::getQuantity)
+                    .sum();
+            if (totalCollected >= req.getQuantity() && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                req.setStatus(com.example.crms.requirement.RequirementStatus.COMPLETED);
+                requirementRepository.save(req);
+            }
+        }
+        
         CouponCollectionDto dto = CouponCollectionDto.from(saved);
         auditService.record(authentication.getName(), "COLLECTION", saved.getId(), "Create Coupon Collection",
                 null, dto.toString(), auditService.ipAddress(httpRequest));
@@ -62,6 +73,7 @@ public class CouponCollectionController {
     public CouponCollectionDto update(@PathVariable Long id, @Valid @RequestBody CouponCollectionRequest request, Authentication authentication, HttpServletRequest httpRequest) {
         CouponCollection collection = collectionRepository.findById(id).orElseThrow();
         CouponCollectionDto oldValue = CouponCollectionDto.from(collection);
+        com.example.crms.requirement.Requirement oldReq = collection.getRequirement();
         
         // Security Fix: If the amount, mode, or evidence changes, force re-verification
         boolean requiresReverification = false;
@@ -82,6 +94,30 @@ public class CouponCollectionController {
             saved = collectionRepository.save(saved);
         }
         
+        if (oldReq != null && (saved.getRequirement() == null || !saved.getRequirement().getId().equals(oldReq.getId()))) {
+            int oldTotal = collectionRepository.findByRequirementId(oldReq.getId()).stream()
+                    .filter(c -> !c.getId().equals(id))
+                    .mapToInt(CouponCollection::getQuantity)
+                    .sum();
+            if (oldTotal < oldReq.getQuantity() && oldReq.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                oldReq.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
+                requirementRepository.save(oldReq);
+            }
+        }
+        if (saved.getRequirement() != null) {
+            com.example.crms.requirement.Requirement req = saved.getRequirement();
+            int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
+                    .mapToInt(CouponCollection::getQuantity)
+                    .sum();
+            if (totalCollected >= req.getQuantity() && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                req.setStatus(com.example.crms.requirement.RequirementStatus.COMPLETED);
+                requirementRepository.save(req);
+            } else if (totalCollected < req.getQuantity() && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                req.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
+                requirementRepository.save(req);
+            }
+        }
+        
         CouponCollectionDto newValue = CouponCollectionDto.from(saved);
         auditService.record(authentication.getName(), "COLLECTION", id, "Update Coupon Collection",
                 oldValue.toString(), newValue.toString(), auditService.ipAddress(httpRequest));
@@ -91,8 +127,20 @@ public class CouponCollectionController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN','USER')")
     public void delete(@PathVariable Long id, Authentication authentication, HttpServletRequest httpRequest) {
-        CouponCollectionDto oldValue = collectionRepository.findById(id).map(CouponCollectionDto::from).orElseThrow();
+        CouponCollection collection = collectionRepository.findById(id).orElseThrow();
+        CouponCollectionDto oldValue = CouponCollectionDto.from(collection);
+        com.example.crms.requirement.Requirement req = collection.getRequirement();
         collectionRepository.deleteById(id);
+        if (req != null) {
+            int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
+                    .filter(c -> !c.getId().equals(id))
+                    .mapToInt(CouponCollection::getQuantity)
+                    .sum();
+            if (totalCollected < req.getQuantity() && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                req.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
+                requirementRepository.save(req);
+            }
+        }
         auditService.record(authentication.getName(), "COLLECTION", id, "Delete Coupon Collection",
                 oldValue.toString(), null, auditService.ipAddress(httpRequest));
     }
