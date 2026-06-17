@@ -53,8 +53,9 @@ public class CouponCollectionController {
         
         if (saved.getRequirement() != null) {
             com.example.crms.requirement.Requirement req = saved.getRequirement();
+            Long savedId = saved.getId();
             int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
-                    .filter(c -> !c.getId().equals(saved.getId()))
+                    .filter(c -> !c.getId().equals(savedId))
                     .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
                     .sum() + (saved.getQuantity() == null ? 0 : saved.getQuantity());
             int requiredQty = req.getQuantity() == null ? 1 : req.getQuantity();
@@ -109,8 +110,9 @@ public class CouponCollectionController {
         }
         if (saved.getRequirement() != null) {
             com.example.crms.requirement.Requirement req = saved.getRequirement();
+            Long savedId = saved.getId();
             int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
-                    .filter(c -> !c.getId().equals(saved.getId()))
+                    .filter(c -> !c.getId().equals(savedId))
                     .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
                     .sum() + (saved.getQuantity() == null ? 0 : saved.getQuantity());
             int requiredQty = req.getQuantity() == null ? 1 : req.getQuantity();
