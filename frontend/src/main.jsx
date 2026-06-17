@@ -319,7 +319,7 @@ function Dashboard({ setTab, session }) {
           <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{formatCurrency(withGro)}</div>
         </div>
         <div style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "white", padding: "24px", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgba(59, 130, 246, 0.3)" }}>
-          <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem", opacity: 0.9 }}>Amount with Admin (Bank Pending)</h3>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem", opacity: 0.9 }}>Amount with BranchManager (Bank Pending)</h3>
           <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{formatCurrency(withAdmin)}</div>
         </div>
       </div>
