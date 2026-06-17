@@ -54,9 +54,11 @@ public class CouponCollectionController {
         if (saved.getRequirement() != null) {
             com.example.crms.requirement.Requirement req = saved.getRequirement();
             int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
-                    .mapToInt(CouponCollection::getQuantity)
-                    .sum();
-            if (totalCollected >= req.getQuantity() && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                    .filter(c -> !c.getId().equals(saved.getId()))
+                    .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
+                    .sum() + (saved.getQuantity() == null ? 0 : saved.getQuantity());
+            int requiredQty = req.getQuantity() == null ? 1 : req.getQuantity();
+            if (totalCollected >= requiredQty && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
                 req.setStatus(com.example.crms.requirement.RequirementStatus.COMPLETED);
                 requirementRepository.save(req);
             }
@@ -97,9 +99,10 @@ public class CouponCollectionController {
         if (oldReq != null && (saved.getRequirement() == null || !saved.getRequirement().getId().equals(oldReq.getId()))) {
             int oldTotal = collectionRepository.findByRequirementId(oldReq.getId()).stream()
                     .filter(c -> !c.getId().equals(id))
-                    .mapToInt(CouponCollection::getQuantity)
+                    .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
                     .sum();
-            if (oldTotal < oldReq.getQuantity() && oldReq.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+            int oldRequiredQty = oldReq.getQuantity() == null ? 1 : oldReq.getQuantity();
+            if (oldTotal < oldRequiredQty && oldReq.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
                 oldReq.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
                 requirementRepository.save(oldReq);
             }
@@ -107,12 +110,14 @@ public class CouponCollectionController {
         if (saved.getRequirement() != null) {
             com.example.crms.requirement.Requirement req = saved.getRequirement();
             int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
-                    .mapToInt(CouponCollection::getQuantity)
-                    .sum();
-            if (totalCollected >= req.getQuantity() && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
+                    .filter(c -> !c.getId().equals(saved.getId()))
+                    .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
+                    .sum() + (saved.getQuantity() == null ? 0 : saved.getQuantity());
+            int requiredQty = req.getQuantity() == null ? 1 : req.getQuantity();
+            if (totalCollected >= requiredQty && req.getStatus() != com.example.crms.requirement.RequirementStatus.COMPLETED) {
                 req.setStatus(com.example.crms.requirement.RequirementStatus.COMPLETED);
                 requirementRepository.save(req);
-            } else if (totalCollected < req.getQuantity() && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+            } else if (totalCollected < requiredQty && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
                 req.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
                 requirementRepository.save(req);
             }
@@ -134,9 +139,10 @@ public class CouponCollectionController {
         if (req != null) {
             int totalCollected = collectionRepository.findByRequirementId(req.getId()).stream()
                     .filter(c -> !c.getId().equals(id))
-                    .mapToInt(CouponCollection::getQuantity)
+                    .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
                     .sum();
-            if (totalCollected < req.getQuantity() && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
+            int requiredQty = req.getQuantity() == null ? 1 : req.getQuantity();
+            if (totalCollected < requiredQty && req.getStatus() == com.example.crms.requirement.RequirementStatus.COMPLETED) {
                 req.setStatus(com.example.crms.requirement.RequirementStatus.IN_PROGRESS);
                 requirementRepository.save(req);
             }
@@ -229,11 +235,13 @@ public class CouponCollectionController {
             
             int totalCollectedSoFar = collectionRepository.findByRequirementId(req.getId()).stream()
                     .filter(c -> collection.getId() == null || !c.getId().equals(collection.getId()))
-                    .mapToInt(CouponCollection::getQuantity)
+                    .mapToInt(c -> c.getQuantity() == null ? 0 : c.getQuantity())
                     .sum();
                     
-            if (totalCollectedSoFar + request.quantity() > req.getQuantity()) {
-                throw new IllegalArgumentException("Cannot collect more than the required quantity (" + req.getQuantity() + "). Already collected: " + totalCollectedSoFar);
+            int reqQty = req.getQuantity() == null ? 1 : req.getQuantity();
+            int newQty = request.quantity() == null ? 0 : request.quantity();
+            if (totalCollectedSoFar + newQty > reqQty) {
+                throw new IllegalArgumentException("Cannot collect more than the required quantity (" + reqQty + "). Already collected: " + totalCollectedSoFar);
             }
             
             collection.setRequirement(req);
