@@ -278,6 +278,7 @@ function Dashboard({ setTab, session }) {
   const withGro = data.collections.filter(c => !c.paymentVerified && c.paymentMode === "CASH").reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
   const withAdmin = data.collections.filter(c => !c.paymentVerified && c.paymentMode !== "CASH").reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
   const depositedAmount = data.collections.filter(c => c.paymentVerified).reduce((sum, c) => sum + (Number(c.collectedAmount) || 0), 0);
+  const totalCouponAmount = data.collections.filter(c => c.couponAvailable).reduce((sum, c) => sum + Number(c.couponValue || 0), 0);
 
   const formatCurrency = (val) => `₹${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -321,6 +322,10 @@ function Dashboard({ setTab, session }) {
         <div style={{ background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "white", padding: "24px", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgba(59, 130, 246, 0.3)" }}>
           <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem", opacity: 0.9 }}>Amount with BranchManager (Bank Pending)</h3>
           <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{formatCurrency(withAdmin)}</div>
+        </div>
+        <div style={{ background: "linear-gradient(135deg, #8b5cf6, #7c3aed)", color: "white", padding: "24px", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgba(139, 92, 246, 0.3)" }}>
+          <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem", opacity: 0.9 }}>Total Coupon Amount</h3>
+          <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{formatCurrency(totalCouponAmount)}</div>
         </div>
       </div>
 
