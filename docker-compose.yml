@@ -26,6 +26,8 @@ services:
       - DB_PASSWORD=crms
       - JWT_SECRET=change-this-secret-change-this-secret-change-this-secret
       - CORS_ALLOWED_ORIGIN=*
+      - MAIL_USERNAME=gowthamkaushik7358@gmail.com
+      - MAIL_PASSWORD=mvjz accx fwdj vlhs
     depends_on:
       - mysql
 

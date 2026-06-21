@@ -151,6 +151,12 @@ textarea {
   font-weight: 900;
 }
 
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .sidebar button {
   min-height: 42px;
   display: flex;
@@ -178,6 +184,7 @@ textarea {
   padding: 28px;
   overflow-x: hidden;
   overflow-y: auto;
+  min-width: 0;
 }
 
 header {
@@ -303,7 +310,7 @@ header {
 
 .dashboard-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
   gap: 24px;
 }
 
@@ -414,6 +421,7 @@ header {
   grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+  min-width: 0;
 }
 
 .entity-form {
@@ -544,6 +552,12 @@ th:last-child {
     display: none; /* Hide brand on mobile bottom nav */
   }
 
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+
   .sidebar button {
     flex-direction: column;
     gap: 4px;
@@ -574,7 +588,14 @@ th:last-child {
   }
 
   .split {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 24px;
+  }
+  .split > * {
+    width: 100%;
+    min-width: 0;
   }
 
   header {
@@ -585,6 +606,10 @@ th:last-child {
 
   .profile {
     text-align: left;
+  }
+
+  .alert-stats {
+    flex-direction: column;
   }
 }
 

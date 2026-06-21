@@ -49,6 +49,7 @@ function App() {
   }
 
   function logout() {
+    api("/auth/logout", { method: "POST" }).catch(() => {});
     localStorage.removeItem("crms-session");
     setSession(null);
   }
@@ -74,7 +75,11 @@ function Login({ onLogin }) {
     try {
       onLogin(await api("/auth/login", { method: "POST", body: JSON.stringify(form) }));
     } catch (err) {
-      setError("Login failed. Check credentials and API availability.");
+      let m = err.message;
+      if (m.includes("{")) {
+        try { m = JSON.parse(m).message || m; } catch (e) { }
+      }
+      setError(m || "Login failed. Check credentials and API availability.");
     }
   }
 
@@ -165,7 +170,7 @@ function Shell({ session, logout }) {
     <div className="app">
       <nav className="sidebar">
         <div className="sidebar-brand"><Shield /> <span>VIJAYAM ENTERPRISES</span></div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        <div className="nav-links">
         {nav.map(([id, Icon, label]) => (
           <button key={id} className={tab === id ? "active" : ""} onClick={() => setTab(id)} title={label}>
             <Icon size={18} /> {label}
@@ -192,7 +197,7 @@ function Shell({ session, logout }) {
                   {notifications.length === 0 ? <div style={{ padding: "12px", color: "#64748b", fontSize: "13px", textAlign: "center" }}>No notifications</div> : null}
                   {notifications.map(n => (
                     <div key={n.id} onClick={() => markAsRead(n.id)} style={{ padding: "12px", borderBottom: "1px solid #f1f5f9", cursor: "pointer", background: n.read ? "white" : "#f0fdf4" }}>
-                      <p style={{ margin: 0, fontSize: "13px", color: n.read ? "#475569" : "#0f172a", fontWeight: n.read ? "normal" : "bold" }}>{n.message}</p>
+                      <p style={{ margin: 0, fontSize: "13px", color: n.read ? "#475569" : "#0f172a", fontWeight: n.read ? "normal" : "bold", whiteSpace: "pre-wrap" }}>{n.message}</p>
                       <small style={{ color: "#94a3b8", fontSize: "11px" }}>{new Date(n.createdAt).toLocaleString()}</small>
                     </div>
                   ))}
@@ -310,7 +315,7 @@ function Dashboard({ setTab, session }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
+      <div className="dashboard-row">
         <div style={{ background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "white", padding: "24px", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgba(34, 197, 94, 0.3)" }}>
           <h3 style={{ margin: "0 0 8px 0", fontSize: "1.2rem", opacity: 0.9 }}>Deposited Amount</h3>
           <div style={{ fontSize: "2.5rem", fontWeight: "bold" }}>{formatCurrency(depositedAmount)}</div>
@@ -329,7 +334,7 @@ function Dashboard({ setTab, session }) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "24px" }}>
+      <div className="dashboard-row">
         <div className="dashboard-card" style={{ padding: "24px", display: "flex", flexDirection: "column" }}>
           <div className="card-header" style={{ marginBottom: "16px" }}>
             <h3>Total Customers ({data.customers.length})</h3>
@@ -374,7 +379,7 @@ function Dashboard({ setTab, session }) {
         </div>
       </div>
 
-      <div className="dashboard-row" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="dashboard-row">
         <div className="dashboard-card overdue-requirements" style={{ padding: "24px", borderTop: "4px solid #ef4444" }}>
           <div className="card-header">
             <h3>Overdue Requirements</h3>
@@ -401,7 +406,7 @@ function Dashboard({ setTab, session }) {
         </div>
       </div>
 
-      <div className="dashboard-row" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="dashboard-row">
         <div className="dashboard-card inventory-card" style={{ padding: "24px" }}>
           <div className="card-header">
             <h3>Inventory Overview</h3>
@@ -426,7 +431,7 @@ function Dashboard({ setTab, session }) {
         </div>
       </div>
 
-      <div className="dashboard-row" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="dashboard-row">
         <div className="dashboard-card recent-activity" style={{ padding: "24px" }}>
           <div className="card-header">
             <h3>Recent Audit Events</h3>
@@ -481,7 +486,7 @@ function Customers({ canEdit, session }) {
         setItems([]);
         setEmptyMsg(customers?.message || "No records yet");
       } else {
-        setItems(visCust);
+        setItems(visCust.sort((a, b) => b.id - a.id));
         setEmptyMsg("");
       }
       setUsers(Array.isArray(assignableUsers) ? assignableUsers : []);
@@ -655,7 +660,7 @@ function Requirements({ canDelete, session }) {
       setItems([]);
       setEmptyMsg(reqs?.message || "No records yet");
     } else {
-      setItems(visReqs);
+      setItems(visReqs.sort((a, b) => b.id - a.id));
       setEmptyMsg("");
     }
     setCustomers(applyVisibility(custs, "customers", session, users));
@@ -1189,7 +1194,7 @@ function Collections({ canEdit, session }) {
       setItems([]);
       setEmptyMsg(collections?.message || "No records yet");
     } else {
-      setItems(visCols);
+      setItems(visCols.sort((a, b) => b.id - a.id));
       setEmptyMsg("");
     }
     setCustomers(applyVisibility(customerList, "customers", session, assignableUsers));
@@ -1522,6 +1527,7 @@ function Reports({ session }) {
         cashFlowMap.set(key, {
           gro: c.collectedByName,
           groEmail: c.collectedByEmail,
+          customerName: c.customerName || "N/A",
           requirement: c.requirementTitle || "General",
           admin: c.collectorAssignedAdminName || "N/A",
           adminEmail: c.collectorAssignedAdminEmail,
@@ -1579,9 +1585,9 @@ function Reports({ session }) {
   };
 
   const handleNotify = async (row) => {
-    const emails = [row.groEmail, row.adminEmail].filter(Boolean);
+    const emails = [row.groEmail].filter(Boolean);
     if (emails.length === 0) return alert("No emails available to notify.");
-    const message = `Please deposit the amount that is cash to company account for requirement: ${row.requirement}. Pending Amount: ₹${row.withGro.toFixed(2)}`;
+    const message = `URGENT ACTION REQUIRED: Please deposit the cash collected to the company account.\nCustomer: ${row.customerName || 'N/A'}\nRequirement: ${row.requirement}\nPending Amount: ₹${row.withGro.toFixed(2)}`;
     try {
       const sessionData = JSON.parse(localStorage.getItem("crms-session") || "null");
       const res = await fetch(`/api/notifications/notify`, {

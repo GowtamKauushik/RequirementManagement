@@ -41,4 +41,14 @@ public class JwtService {
     private Claims claims(String token) {
         return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
     }
+
+    public boolean isTokenValid(String token) {
+        if (token == null || token.isBlank()) return false;
+        try {
+            claims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

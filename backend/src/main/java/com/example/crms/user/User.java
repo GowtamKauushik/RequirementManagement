@@ -52,4 +52,7 @@ public class User {
 
     @Column(name = "created_by_email")
     private String createdByEmail;
+
+    @Column(length = 512)
+    private String activeToken;
 }

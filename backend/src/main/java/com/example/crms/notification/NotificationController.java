@@ -10,9 +10,11 @@ import java.util.List;
 @RequestMapping("/notifications")
 public class NotificationController {
     private final NotificationRepository repository;
+    private final EmailService emailService;
 
-    public NotificationController(NotificationRepository repository) {
+    public NotificationController(NotificationRepository repository, EmailService emailService) {
         this.repository = repository;
+        this.emailService = emailService;
     }
 
     @GetMapping
@@ -42,6 +44,12 @@ public class NotificationController {
                     n.setRecipientEmail(email);
                     n.setMessage(request.message());
                     repository.save(n);
+                    
+                    try {
+                        emailService.sendEmail(email, "New Notification from Vijayam Enterprises", request.message());
+                    } catch (Exception e) {
+                        // Logged in EmailService
+                    }
                 }
             }
         }
